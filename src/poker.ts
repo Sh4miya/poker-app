@@ -57,14 +57,6 @@ export interface TournamentState {
   blindLevels: BlindLevel[]
 }
 
-export interface SessionLikeStorage {
-  getItem(key: string): string | null
-  setItem(key: string, value: string): unknown
-  removeItem(key: string): unknown
-}
-
-export const SESSION_STORAGE_KEY = 'poker-app:tournament-mode'
-
 export const DEFAULT_BLIND_LEVELS: BlindLevel[] = [
   { smallBlind: 25, bigBlind: 50, durationMinutes: 20 },
   { smallBlind: 50, bigBlind: 100, durationMinutes: 20 },
@@ -112,6 +104,9 @@ export const createZeroPointStandings = (names: readonly string[] = DEFAULT_PART
     points: 0,
   }))
 
+export const createDefaultTournamentState = (): TournamentState =>
+  structuredClone(DEFAULT_TOURNAMENT_STATE)
+
 const sanitizeBlindLevel = (level: BlindLevel): BlindLevel => ({
   smallBlind: Math.max(1, Number(level.smallBlind) || 1),
   bigBlind: Math.max(1, Number(level.bigBlind) || 1),
@@ -132,27 +127,6 @@ export const normalizeTournamentState = (state: TournamentState): TournamentStat
     isRunning: Boolean(state.isRunning),
     blindLevels,
   }
-}
-
-export const loadTournamentState = (storage: SessionLikeStorage): TournamentState => {
-  const raw = storage.getItem(SESSION_STORAGE_KEY)
-
-  if (!raw) return structuredClone(DEFAULT_TOURNAMENT_STATE)
-
-  try {
-    return normalizeTournamentState(JSON.parse(raw) as TournamentState)
-  } catch {
-    storage.removeItem(SESSION_STORAGE_KEY)
-    return structuredClone(DEFAULT_TOURNAMENT_STATE)
-  }
-}
-
-export const saveTournamentState = (storage: SessionLikeStorage, state: TournamentState) => {
-  storage.setItem(SESSION_STORAGE_KEY, JSON.stringify(normalizeTournamentState(state)))
-}
-
-export const clearTournamentState = (storage: SessionLikeStorage) => {
-  storage.removeItem(SESSION_STORAGE_KEY)
 }
 
 export const formatTimer = (seconds: number) => {

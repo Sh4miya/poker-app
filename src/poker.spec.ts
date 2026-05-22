@@ -8,22 +8,10 @@ import {
   SEASON_SCHEDULE,
   calculatePlayerScore,
   createDefaultScoreRows,
+  createDefaultTournamentState,
   createZeroPointStandings,
-  loadTournamentState,
-  saveTournamentState,
   type ScoreRow,
-  type TournamentState,
 } from './poker'
-
-const memoryStorage = () => {
-  const data = new Map<string, string>()
-
-  return {
-    getItem: (key: string) => data.get(key) ?? null,
-    setItem: (key: string, value: string) => data.set(key, value),
-    removeItem: (key: string) => data.delete(key),
-  }
-}
 
 describe('poker scoring and tournament defaults', () => {
   it('includes the requested participants in order', () => {
@@ -81,16 +69,12 @@ describe('poker scoring and tournament defaults', () => {
     )
   })
 
-  it('persists tournament mode to session storage only', () => {
-    const storage = memoryStorage()
-    const state: TournamentState = {
-      ...DEFAULT_TOURNAMENT_STATE,
-      title: 'Friday night poker',
-      blindLevels: [{ smallBlind: 50, bigBlind: 100, durationMinutes: 15 }],
-    }
+  it('creates a fresh tournament state without session storage', () => {
+    const state = createDefaultTournamentState()
 
-    saveTournamentState(storage, state)
+    state.title = 'Friday night poker'
+    state.blindLevels[0]!.smallBlind = 999
 
-    expect(loadTournamentState(storage)).toEqual(state)
+    expect(createDefaultTournamentState()).toEqual(DEFAULT_TOURNAMENT_STATE)
   })
 })
