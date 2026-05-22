@@ -3,6 +3,9 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 
 import {
   DEFAULT_TOURNAMENT_STATE,
+  SEASON_NUMBER,
+  SEASON_RANGE,
+  SEASON_SCHEDULE,
   calculatePlayerScore,
   clearTournamentState,
   createDefaultScoreRows,
@@ -28,13 +31,11 @@ const currentLevel = computed(
   () => tournament.blindLevels[tournament.levelIndex] ?? DEFAULT_TOURNAMENT_STATE.blindLevels[0]!,
 )
 const nextLevel = computed(() => tournament.blindLevels[tournament.levelIndex + 1] ?? null)
+const nextPokerNight = computed(() => SEASON_SCHEDULE.find((night) => night.isNext) ?? null)
 const timerLabel = computed(() => formatTimer(tournament.secondsRemaining))
-const leaderboard = computed(() =>
-  scoreRows.value
-    .map((row) => ({ ...row, score: calculatePlayerScore(row) }))
-    .sort((a, b) => b.score - a.score || (a.placement ?? 99) - (b.placement ?? 99)),
+const totalPrizePoints = computed(() =>
+  scoreRows.value.reduce((total, row) => total + calculatePlayerScore(row), 0),
 )
-const totalPrizePoints = computed(() => leaderboard.value.reduce((total, row) => total + row.score, 0))
 
 const persistTournament = () => {
   if (typeof window !== 'undefined') saveTournamentState(window.sessionStorage, tournament)
@@ -128,11 +129,15 @@ onUnmounted(() => {
   <main class="app-shell">
     <section class="hero card">
       <div>
-        <p class="eyebrow">Poker stats</p>
-        <h1>No login. Just the scoreboard.</h1>
+        <p class="eyebrow">Season {{ SEASON_NUMBER }} poker stats</p>
+        <h1>Clean slate for the new season.</h1>
         <p class="hero-copy">
-          Track tournament blinds, placements, hosts, and kill points for the current session.
-          Tournament settings live in session storage and can be cleared any time.
+          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}. Rankings and standings are blank
+          until the results are ready to be updated.
+        </p>
+        <p v-if="nextPokerNight" class="next-game-callout">
+          Next poker game: <strong>{{ nextPokerNight.host }}</strong> hosts on
+          {{ nextPokerNight.dateLabel }}.
         </p>
       </div>
       <button class="ghost-button" type="button" @click="resetSessionData">Clear session data</button>
@@ -166,17 +171,18 @@ onUnmounted(() => {
       </div>
 
       <div class="card rules-card">
-        <p class="eyebrow">Points rules</p>
-        <ul>
-          <li>1st = 5 points</li>
-          <li>2nd = 4 points</li>
-          <li>3rd = 3 points</li>
-          <li>4th = 2 points</li>
-          <li>5th onwards = 1 point</li>
-          <li>Host = 1 point</li>
-          <li>Kill point = 1 point each</li>
+        <p class="eyebrow">Season {{ SEASON_NUMBER }}</p>
+        <h2>Schedule</h2>
+        <ul class="season-schedule">
+          <li
+            v-for="night in SEASON_SCHEDULE"
+            :key="night.dateLabel"
+            :class="{ 'next-night': night.isNext }"
+          >
+            <span>{{ night.dateLabel }}</span>
+            <strong>{{ night.host }}</strong>
+          </li>
         </ul>
-        <strong>{{ totalPrizePoints }} total points entered</strong>
       </div>
     </section>
 
@@ -251,14 +257,26 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="card leaderboard-card">
-        <p class="eyebrow">Live leaderboard</p>
-        <ol>
-          <li v-for="row in leaderboard" :key="row.name">
-            <span>{{ row.name }}</span>
-            <strong>{{ row.score }}</strong>
-          </li>
-        </ol>
+      <div class="card standings-card">
+        <p class="eyebrow">Rankings & standings</p>
+        <h2>Clean slate</h2>
+        <p class="muted-copy">
+          No season standings are shown yet. This area is ready for the next update once results are
+          confirmed.
+        </p>
+        <div class="rules-summary">
+          <h3>Points rules</h3>
+          <ul>
+            <li>1st = 5 points</li>
+            <li>2nd = 4 points</li>
+            <li>3rd = 3 points</li>
+            <li>4th = 2 points</li>
+            <li>5th onwards = 1 point</li>
+            <li>Host = 1 point</li>
+            <li>Kill point = 1 point each</li>
+          </ul>
+          <strong>{{ totalPrizePoints }} session-entry points</strong>
+        </div>
       </div>
     </section>
   </main>
@@ -344,10 +362,22 @@ h2 {
   margin-bottom: 0.35rem;
 }
 
-.hero-copy {
+.hero-copy,
+.muted-copy {
   max-width: 720px;
   color: #cbd5e1;
   font-size: 1.08rem;
+}
+
+.next-game-callout {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0;
+  border-radius: 999px;
+  padding: 0.65rem 0.9rem;
+  color: #dcfce7;
+  background: rgba(34, 197, 94, 0.18);
 }
 
 .eyebrow {
@@ -425,7 +455,8 @@ h2 {
   color: #fecaca;
 }
 
-.rules-card ul {
+.rules-card ul,
+.rules-summary ul {
   display: grid;
   gap: 0.5rem;
   margin: 0 0 1rem;
@@ -433,17 +464,49 @@ h2 {
   color: #e2e8f0;
 }
 
+.season-schedule {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.season-schedule li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  border-radius: 0.95rem;
+  padding: 0.75rem;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.season-schedule .next-night {
+  color: #dcfce7;
+  background: rgba(34, 197, 94, 0.22);
+}
+
+.rules-summary {
+  margin-top: 1.25rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 1rem;
+}
+
+.rules-summary h3 {
+  margin: 0 0 0.7rem;
+}
+
 .schedule-list,
-.score-table,
-.leaderboard-card ol {
+.score-table {
   display: grid;
   gap: 0.7rem;
 }
 
 .schedule-row,
 .score-header,
-.score-row,
-.leaderboard-card li {
+.score-row {
   display: grid;
   gap: 0.65rem;
   align-items: center;
@@ -479,16 +542,6 @@ h2 {
 .score-row input[type='checkbox'] {
   width: 1.35rem;
   height: 1.35rem;
-}
-
-.leaderboard-card ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.leaderboard-card li {
-  grid-template-columns: 1fr auto;
 }
 
 @media (max-width: 860px) {

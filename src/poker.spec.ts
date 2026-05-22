@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_PARTICIPANTS,
   DEFAULT_TOURNAMENT_STATE,
+  SEASON_NUMBER,
+  SEASON_RANGE,
+  SEASON_SCHEDULE,
   calculatePlayerScore,
   createDefaultScoreRows,
   loadTournamentState,
@@ -33,6 +36,20 @@ describe('poker scoring and tournament defaults', () => {
       'Kevin',
       'Tama',
       'Lizzie',
+      'Greg',
+    ])
+  })
+
+  it('tracks season 20 schedule with Silvio as the next host', () => {
+    expect(SEASON_NUMBER).toBe(20)
+    expect(SEASON_RANGE).toBe('March to August')
+    expect(SEASON_SCHEDULE).toEqual([
+      { dateLabel: 'Friday 13 March', host: 'Aleanna', isNext: false },
+      { dateLabel: 'Friday 10 April', host: 'Scott', isNext: false },
+      { dateLabel: 'Friday 8 May', host: 'Kevin', isNext: false },
+      { dateLabel: 'Friday 12 June', host: 'Silvio', isNext: true },
+      { dateLabel: 'Thursday 9 July', host: 'Byron', isNext: false },
+      { dateLabel: 'Friday 14 August', host: 'Greg', isNext: false },
     ])
   })
 

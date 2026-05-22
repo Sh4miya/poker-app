@@ -8,9 +8,28 @@ export const DEFAULT_PARTICIPANTS = [
   'Kevin',
   'Tama',
   'Lizzie',
+  'Greg',
 ] as const
 
 export type ParticipantName = (typeof DEFAULT_PARTICIPANTS)[number]
+
+export const SEASON_NUMBER = 20
+export const SEASON_RANGE = 'March to August'
+
+export interface PokerNight {
+  dateLabel: string
+  host: ParticipantName
+  isNext: boolean
+}
+
+export const SEASON_SCHEDULE: PokerNight[] = [
+  { dateLabel: 'Friday 13 March', host: 'Aleanna', isNext: false },
+  { dateLabel: 'Friday 10 April', host: 'Scott', isNext: false },
+  { dateLabel: 'Friday 8 May', host: 'Kevin', isNext: false },
+  { dateLabel: 'Friday 12 June', host: 'Silvio', isNext: true },
+  { dateLabel: 'Thursday 9 July', host: 'Byron', isNext: false },
+  { dateLabel: 'Friday 14 August', host: 'Greg', isNext: false },
+]
 
 export interface ScoreRow {
   name: string
