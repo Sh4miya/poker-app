@@ -1,15 +1,15 @@
 # Poker App
 
-Poker App is a Vue 3 + Vite application for managing Team TFT poker nights. It tracks the Season 20 schedule, participant standings, points rules, and a tournament-mode blind timer so the group can run poker sessions from one focused dashboard.
+Poker App is a Vue 3 + Vite application for managing friendly poker nights. It tracks the Season 20 schedule, participant standings, points rules, and a tournament-mode blind timer so the group can run poker sessions from one focused dashboard.
 
 ## About Team TFT and Multica
 
-This app was designed and created for Team TFT with help from Multica AI agents powered by Hermes. In this workspace, agents such as Teemo and teammates act as local coding scouts: they inspect issues, update the codebase, run checks, and coordinate through Multica so the project can move quickly while keeping the work reviewable.
+This app was designed and created by Team TFT using Multica AI agents powered by Hermes. In this workspace, agents such as Teemo and teammates act as local coding scouts: they inspect issues, update the codebase, run checks, and coordinate through Multica so the project can move quickly while keeping the work reviewable.
 
 ## Features
 
 - Season 20 overview with schedule, hosts, and the next poker night callout.
-- Rankings and standings page seeded with Team TFT participants.
+- Rankings and standings page seeded with participants.
 - Clear points rules for placement, hosting, and kill points.
 - Tournament mode with a live blind timer, editable blind levels, and reset controls.
 - Participant management for adding, removing, and scoring players.
