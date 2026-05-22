@@ -1,3 +1,5 @@
+import appSource from './App.vue?raw'
+
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -76,5 +78,24 @@ describe('poker scoring and tournament defaults', () => {
     state.blindLevels[0]!.smallBlind = 999
 
     expect(createDefaultTournamentState()).toEqual(DEFAULT_TOURNAMENT_STATE)
+  })
+
+  it('keeps the points rules section at the bottom of rankings', () => {
+    const app = appSource
+    const rankingsStart = app.indexOf('<div class="card standings-card">')
+    const rankingsEnd = app.indexOf('</div>\n\n        <div class="card rules-card">', rankingsStart)
+    const pointsRules = app.indexOf('<div class="standings-points-rules">', rankingsStart)
+
+    expect(rankingsStart).toBeGreaterThan(-1)
+    expect(rankingsEnd).toBeGreaterThan(rankingsStart)
+    expect(pointsRules).toBeGreaterThan(rankingsStart)
+    expect(pointsRules).toBeLessThan(rankingsEnd)
+  })
+
+  it('shows a main page navigation button away from the home page', () => {
+    const app = appSource
+
+    expect(app).toContain('<RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">')
+    expect(app).toContain('Main page')
   })
 })

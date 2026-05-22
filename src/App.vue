@@ -140,6 +140,9 @@ onUnmounted(() => {
         </p>
       </div>
       <div class="hero-actions">
+        <RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">
+          Main page
+        </RouterLink>
         <RouterLink class="nav-button" to="/tournament">Tournament mode</RouterLink>
         <RouterLink class="nav-button" to="/participants">Add participants</RouterLink>
       </div>
@@ -160,6 +163,19 @@ onUnmounted(() => {
               <span>{{ standing.points }}</span>
             </div>
           </div>
+
+          <div class="standings-points-rules">
+            <h3>Points rules</h3>
+            <ul>
+              <li>1st = 5 points</li>
+              <li>2nd = 4 points</li>
+              <li>3rd = 3 points</li>
+              <li>4th = 2 points</li>
+              <li>5th onwards = 1 point</li>
+              <li>Host = 1 point</li>
+              <li>Kill point = 1 point each</li>
+            </ul>
+          </div>
         </div>
 
         <div class="card rules-card">
@@ -176,19 +192,6 @@ onUnmounted(() => {
             </li>
           </ul>
         </div>
-      </section>
-
-      <section class="card rules-summary">
-        <h2>Points rules</h2>
-        <ul>
-          <li>1st = 5 points</li>
-          <li>2nd = 4 points</li>
-          <li>3rd = 3 points</li>
-          <li>4th = 2 points</li>
-          <li>5th onwards = 1 point</li>
-          <li>Host = 1 point</li>
-          <li>Kill point = 1 point each</li>
-        </ul>
       </section>
     </template>
 
@@ -486,10 +489,10 @@ h2 {
 }
 
 .rules-card ul,
-.rules-summary ul {
+.standings-points-rules ul {
   display: grid;
   gap: 0.5rem;
-  margin: 0 0 1rem;
+  margin: 0;
   padding-left: 1.2rem;
   color: #e2e8f0;
 }
@@ -518,11 +521,13 @@ h2 {
   background: rgba(34, 197, 94, 0.22);
 }
 
-.rules-summary {
-  margin-top: 1.25rem;
+.standings-points-rules {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 1rem;
 }
 
-.rules-summary h3 {
+.standings-points-rules h3 {
   margin: 0 0 0.7rem;
 }
 
