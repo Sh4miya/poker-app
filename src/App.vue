@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink, useRoute } from 'vue-router'
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 
 import {
   DEFAULT_TOURNAMENT_STATE,
@@ -8,12 +8,10 @@ import {
   SEASON_RANGE,
   SEASON_SCHEDULE,
   calculatePlayerScore,
-  clearTournamentState,
   createDefaultScoreRows,
+  createDefaultTournamentState,
   createZeroPointStandings,
   formatTimer,
-  loadTournamentState,
-  saveTournamentState,
   type BlindLevel,
   type ScoreRow,
   type TournamentState,
@@ -21,13 +19,7 @@ import {
 
 const route = useRoute()
 
-const makeTournamentState = (): TournamentState => {
-  if (typeof window === 'undefined') return structuredClone(DEFAULT_TOURNAMENT_STATE)
-
-  return loadTournamentState(window.sessionStorage)
-}
-
-const tournament = reactive<TournamentState>(makeTournamentState())
+const tournament = reactive<TournamentState>(createDefaultTournamentState())
 const scoreRows = ref<ScoreRow[]>(createDefaultScoreRows())
 let timerId: number | undefined
 
@@ -44,12 +36,6 @@ const totalPrizePoints = computed(() =>
   scoreRows.value.reduce((total, row) => total + calculatePlayerScore(row), 0),
 )
 const zeroPointStandings = computed(() => createZeroPointStandings(scoreRows.value.map((row) => row.name)))
-
-const persistTournament = () => {
-  if (typeof window !== 'undefined') saveTournamentState(window.sessionStorage, tournament)
-}
-
-watch(tournament, persistTournament, { deep: true })
 
 const syncTimerToLevel = () => {
   tournament.secondsRemaining = currentLevel.value.durationMinutes * 60
@@ -116,11 +102,8 @@ const removeParticipant = (index: number) => {
   scoreRows.value.splice(index, 1)
 }
 
-const resetSessionData = () => {
-  Object.assign(tournament, structuredClone(DEFAULT_TOURNAMENT_STATE))
-  scoreRows.value = createDefaultScoreRows()
-
-  if (typeof window !== 'undefined') clearTournamentState(window.sessionStorage)
+const resetTournamentAndBlinds = () => {
+  Object.assign(tournament, createDefaultTournamentState())
 }
 
 onMounted(() => {
@@ -159,7 +142,6 @@ onUnmounted(() => {
       <div class="hero-actions">
         <RouterLink class="nav-button" to="/tournament">Tournament mode</RouterLink>
         <RouterLink class="nav-button" to="/participants">Add participants</RouterLink>
-        <button class="ghost-button" type="button" @click="resetSessionData">Clear session data</button>
       </div>
     </section>
 
@@ -232,6 +214,9 @@ onUnmounted(() => {
           <button type="button" @click="toggleTimer">{{ tournament.isRunning ? 'Pause' : 'Start' }}</button>
           <button type="button" @click="resetCurrentLevel">Reset level</button>
           <button type="button" @click="advanceLevel">Next level</button>
+          <button type="button" class="danger-button" @click="resetTournamentAndBlinds">
+            Reset timer & clear blinds
+          </button>
         </div>
       </section>
 
@@ -308,10 +293,10 @@ onUnmounted(() => {
             <button type="button" class="danger-button" @click="removeParticipant(index)">Remove</button>
           </div>
         </div>
-        <p class="muted-copy session-note">
-          Participant edits stay in this browser session. Main standings still begin at 0 points.
+        <p class="muted-copy participants-note">
+          Participant edits stay local to the current page view. Main standings still begin at 0 points.
         </p>
-        <strong>{{ totalPrizePoints }} session-entry points</strong>
+        <strong>{{ totalPrizePoints }} editable-entry points</strong>
       </section>
     </template>
   </main>
@@ -596,7 +581,7 @@ h2 {
   height: 1.35rem;
 }
 
-.session-note {
+.participants-note {
   margin-top: 1rem;
 }
 
