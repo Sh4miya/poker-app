@@ -323,7 +323,7 @@ onUnmounted(() => {
   color: #f7f8f8;
   background:
     radial-gradient(circle at 12% -10%, rgba(129, 140, 248, 0.3), transparent 28rem),
-    radial-gradient(circle at 88% 8%, rgba(16, 185, 129, 0.2), transparent 25rem),
+    radial-gradient(circle at 88% 8%, rgba(168, 85, 247, 0.22), transparent 25rem),
     radial-gradient(circle at 48% 102%, rgba(245, 158, 11, 0.14), transparent 30rem),
     linear-gradient(145deg, #050608 0%, #0a0d12 48%, #120b17 100%);
   font-family:
@@ -446,7 +446,7 @@ input:focus {
 .hero::after {
   background:
     radial-gradient(circle at 85% 20%, rgba(196, 181, 253, 0.22), transparent 18rem),
-    radial-gradient(circle at 18% 85%, rgba(16, 185, 129, 0.14), transparent 18rem);
+    radial-gradient(circle at 18% 85%, rgba(139, 92, 246, 0.16), transparent 18rem);
 }
 
 .hero-actions {
@@ -497,11 +497,11 @@ h3 {
   flex-wrap: wrap;
   gap: 0.3rem;
   margin-bottom: 0;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.38);
   border-radius: 999px;
   padding: 0.68rem 0.95rem;
-  color: #d1fae5;
-  background: rgba(16, 185, 129, 0.12);
+  color: #ede9fe;
+  background: rgba(139, 92, 246, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -552,7 +552,7 @@ h3 {
   text-align: center;
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.14), transparent 16rem),
-    linear-gradient(135deg, rgba(109, 93, 252, 0.28), rgba(16, 185, 129, 0.15));
+    linear-gradient(135deg, rgba(109, 93, 252, 0.3), rgba(168, 85, 247, 0.18));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
@@ -569,7 +569,7 @@ h3 {
 }
 
 .timer-panel span {
-  color: #d1fae5;
+  color: #ede9fe;
   font-size: 1.4rem;
   font-weight: 800;
 }
@@ -623,9 +623,9 @@ h3 {
 }
 
 .season-schedule .next-night {
-  color: #ecfdf5;
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(129, 140, 248, 0.13));
-  border-color: rgba(16, 185, 129, 0.28);
+  color: #f5f3ff;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.24), rgba(129, 140, 248, 0.14));
+  border-color: rgba(168, 85, 247, 0.32);
 }
 
 .standings-points-rules {
