@@ -38,6 +38,11 @@ export interface ScoreRow {
   hosted: boolean
 }
 
+export interface StandingRow {
+  name: string
+  points: number
+}
+
 export interface BlindLevel {
   smallBlind: number
   bigBlind: number
@@ -99,6 +104,12 @@ export const createDefaultScoreRows = (): ScoreRow[] =>
     placement: null,
     kills: 0,
     hosted: false,
+  }))
+
+export const createZeroPointStandings = (names: readonly string[] = DEFAULT_PARTICIPANTS): StandingRow[] =>
+  names.map((name) => ({
+    name,
+    points: 0,
   }))
 
 const sanitizeBlindLevel = (level: BlindLevel): BlindLevel => ({
