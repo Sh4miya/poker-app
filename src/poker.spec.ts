@@ -8,6 +8,7 @@ import {
   SEASON_SCHEDULE,
   calculatePlayerScore,
   createDefaultScoreRows,
+  createZeroPointStandings,
   loadTournamentState,
   saveTournamentState,
   type ScoreRow,
@@ -71,6 +72,12 @@ describe('poker scoring and tournament defaults', () => {
   it('creates editable score rows for every participant', () => {
     expect(createDefaultScoreRows()).toEqual(
       DEFAULT_PARTICIPANTS.map((name) => ({ name, placement: null, kills: 0, hosted: false })),
+    )
+  })
+
+  it('starts rankings and standings with every participant on zero points', () => {
+    expect(createZeroPointStandings()).toEqual(
+      DEFAULT_PARTICIPANTS.map((name) => ({ name, points: 0 })),
     )
   })
 
