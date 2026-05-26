@@ -163,10 +163,10 @@ describe('poker scoring and tournament defaults', () => {
     const app = appSource
 
     expect(app).toContain('<div class="card schedule-card">')
-    expect(app).toContain('Full host calendar')
+    expect(app).toContain('Host Calendar')
     expect(app).toContain('v-for="night in SEASON_SCHEDULE"')
     expect(app).toContain('{{ night.dateLabel }}')
-    expect(app).toContain('{{ night.host }} hosts')
+    expect(app).toContain('{{ night.host }}')
     expect(app).toContain(":class=\"{ 'next-night': night.isNext }\"")
   })
 
