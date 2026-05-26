@@ -48,6 +48,7 @@ export interface SeasonResultEntry {
   name: ParticipantName
   placementLabel: string
   points: number
+  hosted: boolean
 }
 
 export interface SeasonResultMonth {
@@ -101,12 +102,18 @@ const placementPoints = (placement: number | null) => {
 
 const createSeasonEntries = (
   results: readonly [ParticipantName, number][],
+  host: ParticipantName,
 ): SeasonResultEntry[] =>
-  results.map(([name, placement]) => ({
-    name,
-    placementLabel: placement >= 5 ? '5th+' : `${placement}${ordinalSuffix(placement)}`,
-    points: placementPoints(placement),
-  }))
+  results.map(([name, placement]) => {
+    const hosted = name === host
+
+    return {
+      name,
+      placementLabel: placement >= 5 ? '5th+' : `${placement}${ordinalSuffix(placement)}`,
+      points: placementPoints(placement) + (hosted ? 1 : 0),
+      hosted,
+    }
+  })
 
 const ordinalSuffix = (placement: number) => {
   if (placement === 1) return 'st'
@@ -119,50 +126,61 @@ const ordinalSuffix = (placement: number) => {
 export const SEASON_RESULTS: SeasonResultMonth[] = [
   {
     month: 'May',
-    entries: createSeasonEntries([
-      ['Ben', 1],
-      ['Scott', 2],
-      ['Greg', 3],
-      ['Aleanna', 4],
-      ['Byron', 5],
-      ['James', 5],
-      ['Kev', 5],
-      ['Lizzie', 5],
-      ['Silvio', 5],
-    ]),
+    entries: createSeasonEntries(
+      [
+        ['Ben', 1],
+        ['Scott', 2],
+        ['Greg', 3],
+        ['Aleanna', 4],
+        ['Byron', 5],
+        ['James', 5],
+        ['Kev', 5],
+        ['Lizzie', 5],
+        ['Silvio', 5],
+      ],
+      'Kev',
+    ),
   },
   {
     month: 'April',
-    entries: createSeasonEntries([
-      ['James', 1],
-      ['Aleanna', 2],
-      ['Lizzie', 3],
-      ['Scott', 4],
-      ['Ben', 5],
-      ['Silvio', 5],
-      ['Greg', 5],
-      ['Tama', 5],
-      ['Byron', 5],
-    ]),
+    entries: createSeasonEntries(
+      [
+        ['James', 1],
+        ['Aleanna', 2],
+        ['Lizzie', 3],
+        ['Scott', 4],
+        ['Ben', 5],
+        ['Silvio', 5],
+        ['Greg', 5],
+        ['Tama', 5],
+        ['Byron', 5],
+      ],
+      'Scott',
+    ),
   },
   {
     month: 'March',
-    entries: createSeasonEntries([
-      ['Silvio', 1],
-      ['Aleanna', 2],
-      ['James', 3],
-      ['Lizzie', 4],
-      ['Ben', 5],
-      ['Greg', 5],
-      ['Cookie', 5],
-    ]),
+    entries: createSeasonEntries(
+      [
+        ['Silvio', 1],
+        ['Aleanna', 2],
+        ['James', 3],
+        ['Lizzie', 4],
+        ['Ben', 5],
+        ['Greg', 5],
+        ['Cookie', 5],
+      ],
+      'Aleanna',
+    ),
   },
 ]
 
 export const calculatePlayerScore = (row: ScoreRow) =>
   placementPoints(row.placement) + Math.max(0, row.kills) + (row.hosted ? 1 : 0)
 
-export const createSeasonStandings = (results: readonly SeasonResultMonth[] = SEASON_RESULTS): StandingRow[] => {
+export const createSeasonStandings = (
+  results: readonly SeasonResultMonth[] = SEASON_RESULTS,
+): StandingRow[] => {
   const totals = new Map<string, number>(DEFAULT_PARTICIPANTS.map((name) => [name, 0]))
 
   results.forEach((month) => {
@@ -190,7 +208,9 @@ export const createLocalScoreRows = (): ScoreRow[] => [
   { name: '', placement: null, kills: 0, hosted: false },
 ]
 
-export const createZeroPointStandings = (names: readonly string[] = DEFAULT_PARTICIPANTS): StandingRow[] =>
+export const createZeroPointStandings = (
+  names: readonly string[] = DEFAULT_PARTICIPANTS,
+): StandingRow[] =>
   names.map((name) => ({
     name,
     points: 0,

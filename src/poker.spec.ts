@@ -66,7 +66,9 @@ describe('poker scoring and tournament defaults', () => {
 
   it('stores March, April, and May Season 20 result entries', () => {
     expect(SEASON_RESULTS.map((month) => month.month)).toEqual(['May', 'April', 'March'])
-    expect(SEASON_RESULTS[0]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+    expect(
+      SEASON_RESULTS[0]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`),
+    ).toEqual([
       '1st Ben',
       '2nd Scott',
       '3rd Greg',
@@ -77,7 +79,9 @@ describe('poker scoring and tournament defaults', () => {
       '5th+ Lizzie',
       '5th+ Silvio',
     ])
-    expect(SEASON_RESULTS[1]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+    expect(
+      SEASON_RESULTS[1]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`),
+    ).toEqual([
       '1st James',
       '2nd Aleanna',
       '3rd Lizzie',
@@ -88,7 +92,9 @@ describe('poker scoring and tournament defaults', () => {
       '5th+ Tama',
       '5th+ Byron',
     ])
-    expect(SEASON_RESULTS[2]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+    expect(
+      SEASON_RESULTS[2]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`),
+    ).toEqual([
       '1st Silvio',
       '2nd Aleanna',
       '3rd James',
@@ -101,16 +107,16 @@ describe('poker scoring and tournament defaults', () => {
 
   it('calculates Season 20 standings from the entered monthly results', () => {
     expect(createSeasonStandings()).toEqual([
-      { name: 'Aleanna', points: 10 },
+      { name: 'Aleanna', points: 11 },
       { name: 'James', points: 9 },
       { name: 'Ben', points: 7 },
+      { name: 'Scott', points: 7 },
       { name: 'Silvio', points: 7 },
       { name: 'Lizzie', points: 6 },
-      { name: 'Scott', points: 6 },
       { name: 'Greg', points: 5 },
       { name: 'Byron', points: 2 },
+      { name: 'Kev', points: 2 },
       { name: 'Cookie', points: 1 },
-      { name: 'Kev', points: 1 },
       { name: 'Tama', points: 1 },
     ])
     expect(SEASON_STANDINGS).toEqual(createSeasonStandings())
@@ -153,11 +159,28 @@ describe('poker scoring and tournament defaults', () => {
     expect(pointsRules).toBeLessThan(rankingsEnd)
   })
 
-  it('shows a main page navigation button away from the home page', () => {
+  it('shows a rankings and standings navigation button away from the home page', () => {
     const app = appSource
 
     expect(app).toContain('<RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">')
-    expect(app).toContain('Main page')
+    expect(app).toContain('Rankings &amp; Standings')
+  })
+
+  it('keeps monthly result placings hidden behind per-month buttons', () => {
+    const app = appSource
+
+    expect(app).toContain('const visibleResultMonths = ref<Set<string>>(new Set())')
+    expect(app).toContain("'Show placings'")
+    expect(app).toContain('v-if="visibleResultMonths.has(month.month)"')
+  })
+
+  it('keeps editable participant rows stable and labelled for mobile typing', () => {
+    const app = appSource
+
+    expect(app).toContain(':key="index" class="score-row"')
+    expect(app).toContain('placeholder="Player name"')
+    expect(app).toContain('placeholder="Place"')
+    expect(app).toContain('placeholder="Kills"')
   })
 
   it('keeps participant editing inside local browser session mode', () => {
@@ -173,8 +196,8 @@ describe('poker scoring and tournament defaults', () => {
   it('hides the editable blind schedule until edit blinds is selected', () => {
     const app = appSource
 
-    expect(app).toContain("const showBlindEditor = ref(false)")
-    expect(app).toContain("@click=\"showBlindEditor = !showBlindEditor\"")
+    expect(app).toContain('const showBlindEditor = ref(false)')
+    expect(app).toContain('@click="showBlindEditor = !showBlindEditor"')
     expect(app).toContain("{{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}")
     expect(app).toContain('<section v-if="showBlindEditor" class="card">')
   })

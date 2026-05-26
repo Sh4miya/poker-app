@@ -23,6 +23,7 @@ const route = useRoute()
 const tournament = reactive<TournamentState>(createDefaultTournamentState())
 const scoreRows = ref<ScoreRow[]>(createLocalScoreRows())
 const showBlindEditor = ref(false)
+const visibleResultMonths = ref<Set<string>>(new Set())
 let timerId: number | undefined
 
 const isHomePage = computed(() => route.path === '/')
@@ -37,6 +38,18 @@ const timerLabel = computed(() => formatTimer(tournament.secondsRemaining))
 const totalPrizePoints = computed(() =>
   scoreRows.value.reduce((total, row) => total + calculatePlayerScore(row), 0),
 )
+
+const toggleMonthResults = (month: string) => {
+  const nextVisibleMonths = new Set(visibleResultMonths.value)
+
+  if (nextVisibleMonths.has(month)) {
+    nextVisibleMonths.delete(month)
+  } else {
+    nextVisibleMonths.add(month)
+  }
+
+  visibleResultMonths.value = nextVisibleMonths
+}
 
 const syncTimerToLevel = () => {
   tournament.secondsRemaining = currentLevel.value.durationMinutes * 60
@@ -142,7 +155,7 @@ onUnmounted(() => {
       </div>
       <div class="hero-actions">
         <RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">
-          Main page
+          Rankings &amp; Standings
         </RouterLink>
         <RouterLink class="nav-button" to="/tournament">Tournament mode</RouterLink>
         <RouterLink class="nav-button" to="/local">Local mode</RouterLink>
@@ -166,12 +179,25 @@ onUnmounted(() => {
           </div>
 
           <div class="monthly-results">
-            <h3>Monthly results added</h3>
+            <h3>Monthly results</h3>
             <div v-for="month in SEASON_RESULTS" :key="month.month" class="monthly-result-card">
-              <strong>{{ month.month }}</strong>
-              <ul>
+              <div class="monthly-result-summary">
+                <strong>{{ month.month }}</strong>
+                <button
+                  type="button"
+                  class="ghost-button compact-button"
+                  :aria-expanded="visibleResultMonths.has(month.month)"
+                  @click="toggleMonthResults(month.month)"
+                >
+                  {{ visibleResultMonths.has(month.month) ? 'Hide placings' : 'Show placings' }}
+                </button>
+              </div>
+              <ul v-if="visibleResultMonths.has(month.month)">
                 <li v-for="entry in month.entries" :key="`${month.month}-${entry.name}`">
-                  <span>{{ entry.placementLabel }} {{ entry.name }}</span>
+                  <span
+                    >{{ entry.placementLabel }} {{ entry.name
+                    }}{{ entry.hosted ? ' (host)' : '' }}</span
+                  >
                   <span>{{ entry.points }} pt{{ entry.points === 1 ? '' : 's' }}</span>
                 </li>
               </ul>
@@ -208,12 +234,16 @@ onUnmounted(() => {
           <p>Level {{ tournament.levelIndex + 1 }} / {{ tournament.blindLevels.length }}</p>
           <strong>{{ timerLabel }}</strong>
           <span>{{ currentLevel.smallBlind }} / {{ currentLevel.bigBlind }} blinds</span>
-          <small v-if="nextLevel"> Next: {{ nextLevel.smallBlind }} / {{ nextLevel.bigBlind }} </small>
+          <small v-if="nextLevel">
+            Next: {{ nextLevel.smallBlind }} / {{ nextLevel.bigBlind }}
+          </small>
           <small v-else>Final blind level</small>
         </div>
 
         <div class="button-row">
-          <button type="button" @click="toggleTimer">{{ tournament.isRunning ? 'Pause' : 'Start' }}</button>
+          <button type="button" @click="toggleTimer">
+            {{ tournament.isRunning ? 'Pause' : 'Start' }}
+          </button>
           <button type="button" @click="resetCurrentLevel">Reset level</button>
           <button type="button" @click="advanceLevel">Next level</button>
           <button type="button" @click="showBlindEditor = !showBlindEditor">
@@ -243,7 +273,13 @@ onUnmounted(() => {
                 :value="level.smallBlind"
                 min="1"
                 type="number"
-                @input="updateBlindLevel(index, 'smallBlind', Number(($event.target as HTMLInputElement).value))"
+                @input="
+                  updateBlindLevel(
+                    index,
+                    'smallBlind',
+                    Number(($event.target as HTMLInputElement).value),
+                  )
+                "
               />
             </label>
             <label>
@@ -252,7 +288,13 @@ onUnmounted(() => {
                 :value="level.bigBlind"
                 min="1"
                 type="number"
-                @input="updateBlindLevel(index, 'bigBlind', Number(($event.target as HTMLInputElement).value))"
+                @input="
+                  updateBlindLevel(
+                    index,
+                    'bigBlind',
+                    Number(($event.target as HTMLInputElement).value),
+                  )
+                "
               />
             </label>
             <label>
@@ -261,10 +303,18 @@ onUnmounted(() => {
                 :value="level.durationMinutes"
                 min="1"
                 type="number"
-                @input="updateBlindLevel(index, 'durationMinutes', Number(($event.target as HTMLInputElement).value))"
+                @input="
+                  updateBlindLevel(
+                    index,
+                    'durationMinutes',
+                    Number(($event.target as HTMLInputElement).value),
+                  )
+                "
               />
             </label>
-            <button type="button" class="danger-button" @click="removeBlindLevel(index)">Remove</button>
+            <button type="button" class="danger-button" @click="removeBlindLevel(index)">
+              Remove
+            </button>
           </div>
         </div>
       </section>
@@ -289,18 +339,35 @@ onUnmounted(() => {
             <span>Total</span>
             <span></span>
           </div>
-          <div v-for="(row, index) in scoreRows" :key="`${row.name}-${index}`" class="score-row">
-            <input v-model="row.name" aria-label="Participant name" />
-            <input v-model.number="row.placement" min="1" placeholder="-" type="number" />
-            <input v-model.number="row.kills" min="0" type="number" />
-            <input v-model="row.hosted" type="checkbox" />
-            <strong>{{ calculatePlayerScore(row) }}</strong>
-            <button type="button" class="danger-button" @click="removeParticipant(index)">Remove</button>
+          <div v-for="(row, index) in scoreRows" :key="index" class="score-row">
+            <input v-model="row.name" aria-label="Participant name" placeholder="Player name" />
+            <input
+              v-model.number="row.placement"
+              aria-label="Placement"
+              min="1"
+              placeholder="Place"
+              type="number"
+            />
+            <input
+              v-model.number="row.kills"
+              aria-label="Kills"
+              min="0"
+              placeholder="Kills"
+              type="number"
+            />
+            <label class="host-toggle-cell" aria-label="Hosted">
+              <span>Host</span>
+              <input v-model="row.hosted" type="checkbox" />
+            </label>
+            <strong class="score-total">{{ calculatePlayerScore(row) }}</strong>
+            <button type="button" class="danger-button" @click="removeParticipant(index)">
+              Remove
+            </button>
           </div>
         </div>
         <p class="muted-copy participants-note">
-          Participant edits stay local to the current page view. Main standings use the saved Season 20
-          results.
+          Participant edits stay local to the current page view. Main standings use the saved Season
+          20 results.
         </p>
         <strong>{{ totalPrizePoints }} editable-entry points</strong>
       </section>
@@ -316,7 +383,13 @@ onUnmounted(() => {
 :global(:root) {
   color-scheme: dark;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-feature-settings: 'cv01', 'ss03';
 }
 
@@ -330,7 +403,13 @@ onUnmounted(() => {
     radial-gradient(circle at 48% 102%, rgba(245, 158, 11, 0.14), transparent 30rem),
     linear-gradient(145deg, #050608 0%, #0a0d12 48%, #120b17 100%);
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 }
 
 button,
@@ -584,6 +663,11 @@ h3 {
   margin-top: 1rem;
 }
 
+.compact-button {
+  padding: 0.5rem 0.78rem;
+  font-size: 0.86rem;
+}
+
 .ghost-button,
 .danger-button {
   color: #f7f8f8;
@@ -650,11 +734,18 @@ h3 {
 
 .monthly-result-card {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.65rem;
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 1rem;
   padding: 0.85rem;
   background: rgba(255, 255, 255, 0.04);
+}
+
+.monthly-result-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .monthly-result-card ul {
@@ -723,6 +814,26 @@ h3 {
   text-transform: uppercase;
 }
 
+.score-header span:nth-child(4),
+.score-header span:nth-child(5),
+.host-toggle-cell,
+.score-total {
+  justify-self: center;
+}
+
+.host-toggle-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: #b8c0cc;
+  font-size: 0.83rem;
+}
+
+.host-toggle-cell span {
+  display: none;
+}
+
 .score-row input[type='checkbox'] {
   width: 1.35rem;
   height: 1.35rem;
@@ -746,6 +857,29 @@ h3 {
   .score-header,
   .score-row {
     grid-template-columns: 1fr;
+  }
+
+  .score-header {
+    display: none;
+  }
+
+  .score-header span:nth-child(4),
+  .score-header span:nth-child(5),
+  .host-toggle-cell,
+  .score-total {
+    justify-self: stretch;
+  }
+
+  .host-toggle-cell {
+    justify-content: space-between;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.95rem;
+    padding: 0.7rem 0.8rem;
+    background: rgba(6, 8, 12, 0.72);
+  }
+
+  .host-toggle-cell span {
+    display: inline;
   }
 }
 </style>
