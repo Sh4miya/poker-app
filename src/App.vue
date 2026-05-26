@@ -6,11 +6,12 @@ import {
   DEFAULT_TOURNAMENT_STATE,
   SEASON_NUMBER,
   SEASON_RANGE,
+  SEASON_RESULTS,
   SEASON_SCHEDULE,
+  SEASON_STANDINGS,
   calculatePlayerScore,
   createDefaultScoreRows,
   createDefaultTournamentState,
-  createZeroPointStandings,
   formatTimer,
   type BlindLevel,
   type ScoreRow,
@@ -35,7 +36,6 @@ const timerLabel = computed(() => formatTimer(tournament.secondsRemaining))
 const totalPrizePoints = computed(() =>
   scoreRows.value.reduce((total, row) => total + calculatePlayerScore(row), 0),
 )
-const zeroPointStandings = computed(() => createZeroPointStandings(scoreRows.value.map((row) => row.name)))
 
 const syncTimerToLevel = () => {
   tournament.secondsRemaining = currentLevel.value.durationMinutes * 60
@@ -131,8 +131,8 @@ onUnmounted(() => {
         <p class="eyebrow">Season {{ SEASON_NUMBER }} poker stats</p>
         <h1>Season {{ SEASON_NUMBER }}</h1>
         <p class="hero-copy">
-          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}. Rankings and standings start with
-          every participant on 0 points until results are ready to be updated.
+          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}. Rankings now include the March,
+          April, and May poker night results.
         </p>
         <p v-if="nextPokerNight" class="next-game-callout">
           Next poker game: <strong>{{ nextPokerNight.host }}</strong> hosts on
@@ -158,9 +158,22 @@ onUnmounted(() => {
               <span>Participant</span>
               <span>Points</span>
             </div>
-            <div v-for="standing in zeroPointStandings" :key="standing.name" class="standings-row">
+            <div v-for="standing in SEASON_STANDINGS" :key="standing.name" class="standings-row">
               <strong>{{ standing.name }}</strong>
               <span>{{ standing.points }}</span>
+            </div>
+          </div>
+
+          <div class="monthly-results">
+            <h3>Monthly results added</h3>
+            <div v-for="month in SEASON_RESULTS" :key="month.month" class="monthly-result-card">
+              <strong>{{ month.month }}</strong>
+              <ul>
+                <li v-for="entry in month.entries" :key="`${month.month}-${entry.name}`">
+                  <span>{{ entry.placementLabel }} {{ entry.name }}</span>
+                  <span>{{ entry.points }} pt{{ entry.points === 1 ? '' : 's' }}</span>
+                </li>
+              </ul>
             </div>
           </div>
 
@@ -297,7 +310,8 @@ onUnmounted(() => {
           </div>
         </div>
         <p class="muted-copy participants-note">
-          Participant edits stay local to the current page view. Main standings still begin at 0 points.
+          Participant edits stay local to the current page view. Main standings use the saved Season 20
+          results.
         </p>
         <strong>{{ totalPrizePoints }} editable-entry points</strong>
       </section>
@@ -628,14 +642,45 @@ h3 {
   border-color: rgba(168, 85, 247, 0.32);
 }
 
+.monthly-results,
 .standings-points-rules {
   margin-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 1rem;
 }
 
+.monthly-results {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.monthly-results h3,
 .standings-points-rules h3 {
   margin: 0 0 0.7rem;
+}
+
+.monthly-result-card {
+  display: grid;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 1rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.monthly-result-card ul {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  color: #d7dde7;
+  list-style: none;
+}
+
+.monthly-result-card li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
 }
 
 .schedule-list,
