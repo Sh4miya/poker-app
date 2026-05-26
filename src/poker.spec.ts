@@ -150,13 +150,24 @@ describe('poker scoring and tournament defaults', () => {
   it('keeps the points rules section at the bottom of rankings', () => {
     const app = appSource
     const rankingsStart = app.indexOf('<div class="card standings-card">')
-    const rankingsEnd = app.indexOf('</div>\n      </section>', rankingsStart)
+    const scheduleCard = app.indexOf('<div class="card schedule-card">', rankingsStart)
     const pointsRules = app.indexOf('<div class="standings-points-rules">', rankingsStart)
 
     expect(rankingsStart).toBeGreaterThan(-1)
-    expect(rankingsEnd).toBeGreaterThan(rankingsStart)
+    expect(scheduleCard).toBeGreaterThan(rankingsStart)
     expect(pointsRules).toBeGreaterThan(rankingsStart)
-    expect(pointsRules).toBeLessThan(rankingsEnd)
+    expect(pointsRules).toBeLessThan(scheduleCard)
+  })
+
+  it('renders the full season schedule beside standings on the home page', () => {
+    const app = appSource
+
+    expect(app).toContain('<div class="card schedule-card">')
+    expect(app).toContain('Full host calendar')
+    expect(app).toContain('v-for="night in SEASON_SCHEDULE"')
+    expect(app).toContain('{{ night.dateLabel }}')
+    expect(app).toContain('{{ night.host }} hosts')
+    expect(app).toContain(":class=\"{ 'next-night': night.isNext }\"")
   })
 
   it('shows a rankings and standings navigation button away from the home page', () => {
