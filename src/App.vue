@@ -163,7 +163,7 @@ onUnmounted(() => {
     </section>
 
     <template v-if="isHomePage">
-      <section class="grid align-start">
+      <section class="two-column align-start">
         <div class="card standings-card">
           <p class="eyebrow">Rankings & standings</p>
           <h2>Season {{ SEASON_NUMBER }} standings</h2>
@@ -216,6 +216,18 @@ onUnmounted(() => {
               <li>Kill point = 1 point each</li>
             </ul>
           </div>
+        </div>
+
+        <div class="card schedule-card">
+          <p class="eyebrow">Season schedule</p>
+          <h2>Full host calendar</h2>
+          <p class="muted-copy">Each night is listed with its date and host so the next game is easy to spot.</p>
+          <ul class="season-schedule">
+            <li v-for="night in SEASON_SCHEDULE" :key="night.dateLabel" :class="{ 'next-night': night.isNext }">
+              <span>{{ night.dateLabel }}</span>
+              <strong>{{ night.host }} hosts</strong>
+            </li>
+          </ul>
         </div>
       </section>
     </template>
@@ -761,6 +773,13 @@ h3 {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.75rem;
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
+  gap: 1.5rem;
+  align-items: start;
 }
 
 .schedule-list,
