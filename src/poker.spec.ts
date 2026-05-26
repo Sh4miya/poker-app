@@ -121,6 +121,10 @@ describe('poker scoring and tournament defaults', () => {
     )
   })
 
+  it('starts local mode with one empty editable participant row', () => {
+    expect(createLocalScoreRows()).toEqual([{ name: '', placement: null, kills: 0, hosted: false }])
+  })
+
   it('starts rankings and standings with every participant on zero points', () => {
     expect(createZeroPointStandings()).toEqual(
       DEFAULT_PARTICIPANTS.map((name) => ({ name, points: 0 })),
@@ -139,7 +143,7 @@ describe('poker scoring and tournament defaults', () => {
   it('keeps the points rules section at the bottom of rankings', () => {
     const app = appSource
     const rankingsStart = app.indexOf('<div class="card standings-card">')
-    const rankingsEnd = app.indexOf('</div>\n\n        <div class="card rules-card">', rankingsStart)
+    const rankingsEnd = app.indexOf('</div>\n      </section>', rankingsStart)
     const pointsRules = app.indexOf('<div class="standings-points-rules">', rankingsStart)
 
     expect(rankingsStart).toBeGreaterThan(-1)
@@ -153,5 +157,24 @@ describe('poker scoring and tournament defaults', () => {
 
     expect(app).toContain('<RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">')
     expect(app).toContain('Main page')
+  })
+
+  it('keeps participant editing inside local browser session mode', () => {
+    const app = appSource
+
+    expect(app).toContain("const isLocalPage = computed(() => route.path === '/local')")
+    expect(app).toContain('<RouterLink class="nav-button" to="/local">Local mode</RouterLink>')
+    expect(app).not.toContain('to="/participants"')
+    expect(app).toContain('<template v-else-if="isLocalPage">')
+    expect(app).toContain('Editable participants')
+  })
+
+  it('hides the editable blind schedule until edit blinds is selected', () => {
+    const app = appSource
+
+    expect(app).toContain("const showBlindEditor = ref(false)")
+    expect(app).toContain("@click=\"showBlindEditor = !showBlindEditor\"")
+    expect(app).toContain("{{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}")
+    expect(app).toContain('<section v-if="showBlindEditor" class="card">')
   })
 })
