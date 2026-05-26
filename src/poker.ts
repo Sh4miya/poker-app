@@ -98,6 +98,10 @@ export const createDefaultScoreRows = (): ScoreRow[] =>
     hosted: false,
   }))
 
+export const createLocalScoreRows = (): ScoreRow[] => [
+  { name: '', placement: null, kills: 0, hosted: false },
+]
+
 export const createZeroPointStandings = (names: readonly string[] = DEFAULT_PARTICIPANTS): StandingRow[] =>
   names.map((name) => ({
     name,

@@ -8,8 +8,8 @@ import {
   SEASON_RANGE,
   SEASON_SCHEDULE,
   calculatePlayerScore,
-  createDefaultScoreRows,
   createDefaultTournamentState,
+  createLocalScoreRows,
   createZeroPointStandings,
   formatTimer,
   type BlindLevel,
@@ -20,12 +20,13 @@ import {
 const route = useRoute()
 
 const tournament = reactive<TournamentState>(createDefaultTournamentState())
-const scoreRows = ref<ScoreRow[]>(createDefaultScoreRows())
+const scoreRows = ref<ScoreRow[]>(createLocalScoreRows())
+const showBlindEditor = ref(false)
 let timerId: number | undefined
 
 const isHomePage = computed(() => route.path === '/')
 const isTournamentPage = computed(() => route.path === '/tournament')
-const isParticipantsPage = computed(() => route.path === '/participants')
+const isLocalPage = computed(() => route.path === '/local')
 const currentLevel = computed(
   () => tournament.blindLevels[tournament.levelIndex] ?? DEFAULT_TOURNAMENT_STATE.blindLevels[0]!,
 )
@@ -35,7 +36,7 @@ const timerLabel = computed(() => formatTimer(tournament.secondsRemaining))
 const totalPrizePoints = computed(() =>
   scoreRows.value.reduce((total, row) => total + calculatePlayerScore(row), 0),
 )
-const zeroPointStandings = computed(() => createZeroPointStandings(scoreRows.value.map((row) => row.name)))
+const zeroPointStandings = computed(() => createZeroPointStandings())
 
 const syncTimerToLevel = () => {
   tournament.secondsRemaining = currentLevel.value.durationMinutes * 60
@@ -95,7 +96,7 @@ const updateBlindLevel = <K extends keyof BlindLevel>(
 }
 
 const addParticipant = () => {
-  scoreRows.value.push({ name: 'New participant', placement: null, kills: 0, hosted: false })
+  scoreRows.value.push({ name: '', placement: null, kills: 0, hosted: false })
 }
 
 const removeParticipant = (index: number) => {
@@ -144,12 +145,12 @@ onUnmounted(() => {
           Main page
         </RouterLink>
         <RouterLink class="nav-button" to="/tournament">Tournament mode</RouterLink>
-        <RouterLink class="nav-button" to="/participants">Add participants</RouterLink>
+        <RouterLink class="nav-button" to="/local">Local mode</RouterLink>
       </div>
     </section>
 
     <template v-if="isHomePage">
-      <section class="grid two-column align-start">
+      <section class="grid align-start">
         <div class="card standings-card">
           <p class="eyebrow">Rankings & standings</p>
           <h2>Season {{ SEASON_NUMBER }} standings</h2>
@@ -177,21 +178,6 @@ onUnmounted(() => {
             </ul>
           </div>
         </div>
-
-        <div class="card rules-card">
-          <p class="eyebrow">Season {{ SEASON_NUMBER }}</p>
-          <h2>Schedule</h2>
-          <ul class="season-schedule">
-            <li
-              v-for="night in SEASON_SCHEDULE"
-              :key="night.dateLabel"
-              :class="{ 'next-night': night.isNext }"
-            >
-              <span>{{ night.dateLabel }}</span>
-              <strong>{{ night.host }}</strong>
-            </li>
-          </ul>
-        </div>
       </section>
     </template>
 
@@ -217,13 +203,16 @@ onUnmounted(() => {
           <button type="button" @click="toggleTimer">{{ tournament.isRunning ? 'Pause' : 'Start' }}</button>
           <button type="button" @click="resetCurrentLevel">Reset level</button>
           <button type="button" @click="advanceLevel">Next level</button>
+          <button type="button" @click="showBlindEditor = !showBlindEditor">
+            {{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}
+          </button>
           <button type="button" class="danger-button" @click="resetTournamentAndBlinds">
             Reset timer & clear blinds
           </button>
         </div>
       </section>
 
-      <section class="card">
+      <section v-if="showBlindEditor" class="card">
         <div class="section-heading compact">
           <div>
             <p class="eyebrow">Editable blind schedule</p>
@@ -268,7 +257,7 @@ onUnmounted(() => {
       </section>
     </template>
 
-    <template v-else-if="isParticipantsPage">
+    <template v-else-if="isLocalPage">
       <section class="card">
         <div class="section-heading compact">
           <div>
