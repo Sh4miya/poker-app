@@ -5,10 +5,11 @@ export const DEFAULT_PARTICIPANTS = [
   'James',
   'Ben',
   'Silvio',
-  'Kevin',
+  'Kev',
   'Tama',
   'Lizzie',
   'Greg',
+  'Cookie',
 ] as const
 
 export type ParticipantName = (typeof DEFAULT_PARTICIPANTS)[number]
@@ -25,7 +26,7 @@ export interface PokerNight {
 export const SEASON_SCHEDULE: PokerNight[] = [
   { dateLabel: 'Friday 13 March', host: 'Aleanna', isNext: false },
   { dateLabel: 'Friday 10 April', host: 'Scott', isNext: false },
-  { dateLabel: 'Friday 8 May', host: 'Kevin', isNext: false },
+  { dateLabel: 'Friday 8 May', host: 'Kev', isNext: false },
   { dateLabel: 'Friday 12 June', host: 'Silvio', isNext: true },
   { dateLabel: 'Thursday 9 July', host: 'Byron', isNext: false },
   { dateLabel: 'Friday 14 August', host: 'Greg', isNext: false },
@@ -41,6 +42,17 @@ export interface ScoreRow {
 export interface StandingRow {
   name: string
   points: number
+}
+
+export interface SeasonResultEntry {
+  name: ParticipantName
+  placementLabel: string
+  points: number
+}
+
+export interface SeasonResultMonth {
+  month: string
+  entries: SeasonResultEntry[]
 }
 
 export interface BlindLevel {
@@ -87,8 +99,84 @@ const placementPoints = (placement: number | null) => {
   return 1
 }
 
+const createSeasonEntries = (
+  results: readonly [ParticipantName, number][],
+): SeasonResultEntry[] =>
+  results.map(([name, placement]) => ({
+    name,
+    placementLabel: placement >= 5 ? '5th+' : `${placement}${ordinalSuffix(placement)}`,
+    points: placementPoints(placement),
+  }))
+
+const ordinalSuffix = (placement: number) => {
+  if (placement === 1) return 'st'
+  if (placement === 2) return 'nd'
+  if (placement === 3) return 'rd'
+
+  return 'th'
+}
+
+export const SEASON_RESULTS: SeasonResultMonth[] = [
+  {
+    month: 'May',
+    entries: createSeasonEntries([
+      ['Ben', 1],
+      ['Scott', 2],
+      ['Greg', 3],
+      ['Aleanna', 4],
+      ['Byron', 5],
+      ['James', 5],
+      ['Kev', 5],
+      ['Lizzie', 5],
+      ['Silvio', 5],
+    ]),
+  },
+  {
+    month: 'April',
+    entries: createSeasonEntries([
+      ['James', 1],
+      ['Aleanna', 2],
+      ['Lizzie', 3],
+      ['Scott', 4],
+      ['Ben', 5],
+      ['Silvio', 5],
+      ['Greg', 5],
+      ['Tama', 5],
+      ['Byron', 5],
+    ]),
+  },
+  {
+    month: 'March',
+    entries: createSeasonEntries([
+      ['Silvio', 1],
+      ['Aleanna', 2],
+      ['James', 3],
+      ['Lizzie', 4],
+      ['Ben', 5],
+      ['Greg', 5],
+      ['Cookie', 5],
+    ]),
+  },
+]
+
 export const calculatePlayerScore = (row: ScoreRow) =>
   placementPoints(row.placement) + Math.max(0, row.kills) + (row.hosted ? 1 : 0)
+
+export const createSeasonStandings = (results: readonly SeasonResultMonth[] = SEASON_RESULTS): StandingRow[] => {
+  const totals = new Map<string, number>(DEFAULT_PARTICIPANTS.map((name) => [name, 0]))
+
+  results.forEach((month) => {
+    month.entries.forEach((entry) => {
+      totals.set(entry.name, (totals.get(entry.name) ?? 0) + entry.points)
+    })
+  })
+
+  return Array.from(totals, ([name, points]) => ({ name, points })).sort(
+    (left, right) => right.points - left.points || left.name.localeCompare(right.name),
+  )
+}
+
+export const SEASON_STANDINGS = createSeasonStandings()
 
 export const createDefaultScoreRows = (): ScoreRow[] =>
   DEFAULT_PARTICIPANTS.map((name) => ({
