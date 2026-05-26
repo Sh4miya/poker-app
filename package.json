@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --open /index.dev.html",
-    "build": "run-s type-check build-only",
+    "build": "run-s type-check build-only sync-pages",
     "preview": "vite preview",
     "test": "vitest run",
     "build-only": "vite build",
-    "postbuild-only": "node scripts/rename-pages-index.mjs",
+    "sync-pages": "node scripts/rename-pages-index.mjs",
     "type-check": "vue-tsc --build",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",

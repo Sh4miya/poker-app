@@ -1,4 +1,12 @@
-import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
 
@@ -21,3 +29,18 @@ const html = readFileSync(indexHtml, 'utf8').replace(
 writeFileSync(indexHtml, html)
 writeFileSync(fallbackHtml, html)
 writeFileSync(noJekyll, '')
+
+const rootIndexHtml = join(rootDir, 'index.html')
+const rootFallbackHtml = join(rootDir, '404.html')
+const rootNoJekyll = join(rootDir, '.nojekyll')
+const rootFavicon = join(rootDir, 'favicon.ico')
+const rootAssetsDir = join(rootDir, 'assets')
+const distAssetsDir = join(distDir, 'assets')
+
+cpSync(indexHtml, rootIndexHtml)
+cpSync(fallbackHtml, rootFallbackHtml)
+cpSync(noJekyll, rootNoJekyll)
+cpSync(join(distDir, 'favicon.ico'), rootFavicon)
+rmSync(rootAssetsDir, { recursive: true, force: true })
+mkdirSync(rootAssetsDir, { recursive: true })
+cpSync(distAssetsDir, rootAssetsDir, { recursive: true })
