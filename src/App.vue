@@ -145,8 +145,7 @@ onUnmounted(() => {
         <p class="eyebrow">Season {{ SEASON_NUMBER }} poker stats</p>
         <h1>Season {{ SEASON_NUMBER }}</h1>
         <p class="hero-copy">
-          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}. Rankings now include the March,
-          April, and May poker night results.
+          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}.
         </p>
         <p v-if="nextPokerNight" class="next-game-callout">
           Next poker game: <strong>{{ nextPokerNight.host }}</strong> on
@@ -221,7 +220,6 @@ onUnmounted(() => {
         <div class="card schedule-card">
           <p class="eyebrow">Season schedule</p>
           <h2>Host Calendar</h2>
-          <p class="muted-copy">Each night is listed with its date and host so the next game is easy to spot.</p>
           <ul class="season-schedule">
             <li v-for="night in SEASON_SCHEDULE" :key="night.dateLabel" :class="{ 'next-night': night.isNext }">
               <span>{{ night.dateLabel }}</span>
