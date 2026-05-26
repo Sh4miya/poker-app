@@ -71,14 +71,14 @@ export interface TournamentState {
 }
 
 export const DEFAULT_BLIND_LEVELS: BlindLevel[] = [
-  { smallBlind: 25, bigBlind: 50, durationMinutes: 20 },
+  { smallBlind: 10, bigBlind: 20, durationMinutes: 20 },
+  { smallBlind: 20, bigBlind: 40, durationMinutes: 20 },
   { smallBlind: 50, bigBlind: 100, durationMinutes: 20 },
-  { smallBlind: 75, bigBlind: 150, durationMinutes: 20 },
   { smallBlind: 100, bigBlind: 200, durationMinutes: 20 },
-  { smallBlind: 150, bigBlind: 300, durationMinutes: 15 },
   { smallBlind: 200, bigBlind: 400, durationMinutes: 15 },
-  { smallBlind: 300, bigBlind: 600, durationMinutes: 15 },
-  { smallBlind: 500, bigBlind: 1000, durationMinutes: 15 },
+  { smallBlind: 400, bigBlind: 800, durationMinutes: 15 },
+  { smallBlind: 800, bigBlind: 1600, durationMinutes: 15 },
+  { smallBlind: 1600, bigBlind: 3200, durationMinutes: 15 },
 ]
 
 export const DEFAULT_TOURNAMENT_STATE: TournamentState = {
