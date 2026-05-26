@@ -55,6 +55,11 @@ Run linting:
 npm run lint
 ```
 
+## Deployment
+
+GitHub Pages is published from the `main` branch via the repository’s Pages settings.
+The canonical path is a reproducible `npm run build` on `main`; `gh-pages` is not used for publishing.
+
 ## Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar). Disable Vetur if it is installed.
