@@ -23,6 +23,8 @@ const route = useRoute()
 const tournament = reactive<TournamentState>(createDefaultTournamentState())
 const scoreRows = ref<ScoreRow[]>(createLocalScoreRows())
 const showBlindEditor = ref(false)
+const timerPanel = ref<HTMLElement | null>(null)
+const isTimerFullscreen = ref(false)
 const visibleResultMonths = ref<Set<string>>(new Set())
 let timerId: number | undefined
 
@@ -120,6 +122,26 @@ const resetTournamentAndBlinds = () => {
   Object.assign(tournament, createDefaultTournamentState())
 }
 
+const syncFullscreenState = () => {
+  isTimerFullscreen.value = document.fullscreenElement === timerPanel.value
+}
+
+const toggleTimerFullscreen = async () => {
+  const panel = timerPanel.value
+  if (!panel) return
+
+  try {
+    if (document.fullscreenElement === panel) {
+      await document.exitFullscreen()
+      return
+    }
+
+    await panel.requestFullscreen()
+  } catch {
+    isTimerFullscreen.value = false
+  }
+}
+
 onMounted(() => {
   timerId = window.setInterval(() => {
     if (!tournament.isRunning) return
@@ -131,10 +153,14 @@ onMounted(() => {
 
     advanceLevel()
   }, 1000)
+
+  document.addEventListener('fullscreenchange', syncFullscreenState)
+  syncFullscreenState()
 })
 
 onUnmounted(() => {
   if (timerId) window.clearInterval(timerId)
+  document.removeEventListener('fullscreenchange', syncFullscreenState)
 })
 </script>
 
@@ -240,7 +266,15 @@ onUnmounted(() => {
           <input v-model="tournament.title" class="title-input" aria-label="Tournament title" />
         </div>
 
-        <div class="timer-panel">
+        <div ref="timerPanel" class="timer-panel">
+          <button
+            type="button"
+            class="ghost-button compact-button timer-fullscreen-button"
+            :aria-pressed="isTimerFullscreen"
+            @click="toggleTimerFullscreen"
+          >
+            {{ isTimerFullscreen ? 'Exit fullscreen' : 'Fullscreen timer' }}
+          </button>
           <p>Level {{ tournament.levelIndex + 1 }} / {{ tournament.blindLevels.length }}</p>
           <strong>{{ timerLabel }}</strong>
           <span>{{ currentLevel.smallBlind }} / {{ currentLevel.bigBlind }} blinds</span>
@@ -635,6 +669,7 @@ h3 {
 }
 
 .timer-panel {
+  position: relative;
   display: grid;
   place-items: center;
   min-height: 250px;
@@ -660,6 +695,31 @@ h3 {
   line-height: 0.9;
 }
 
+.timer-panel:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border: 0;
+  border-radius: 0;
+  padding: clamp(1.5rem, 5vw, 4rem);
+  gap: 1rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.22), transparent 16rem),
+    linear-gradient(135deg, rgba(13, 17, 25, 0.96), rgba(32, 16, 52, 0.98));
+}
+
+.timer-panel:fullscreen strong {
+  font-size: clamp(6rem, 20vw, 12rem);
+}
+
+.timer-panel:fullscreen span {
+  font-size: clamp(1.45rem, 4vw, 3rem);
+}
+
+.timer-panel:fullscreen .timer-fullscreen-button {
+  top: 1.2rem;
+  right: 1.2rem;
+}
+
 .timer-panel span {
   color: #ede9fe;
   font-size: 1.4rem;
@@ -671,6 +731,13 @@ h3 {
   flex-wrap: wrap;
   gap: 0.7rem;
   margin-top: 1rem;
+}
+
+.timer-fullscreen-button {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 1;
 }
 
 .compact-button {
@@ -867,6 +934,11 @@ h3 {
   .section-heading.compact {
     display: grid;
     align-items: stretch;
+  }
+
+  .timer-fullscreen-button {
+    position: static;
+    justify-self: end;
   }
 
   .two-column,

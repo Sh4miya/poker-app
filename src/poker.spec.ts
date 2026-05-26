@@ -138,6 +138,19 @@ describe('poker scoring and tournament defaults', () => {
     )
   })
 
+  it('uses the requested tournament blind ladder', () => {
+    expect(DEFAULT_TOURNAMENT_STATE.blindLevels.map((level) => `${level.smallBlind}/${level.bigBlind}`)).toEqual([
+      '10/20',
+      '20/40',
+      '50/100',
+      '100/200',
+      '200/400',
+      '400/800',
+      '800/1600',
+      '1600/3200',
+    ])
+  })
+
   it('creates a fresh tournament state without session storage', () => {
     const state = createDefaultTournamentState()
 
@@ -211,5 +224,17 @@ describe('poker scoring and tournament defaults', () => {
     expect(app).toContain('@click="showBlindEditor = !showBlindEditor"')
     expect(app).toContain("{{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}")
     expect(app).toContain('<section v-if="showBlindEditor" class="card">')
+  })
+
+  it('adds a fullscreen timer view for tournament mode', () => {
+    const app = appSource
+
+    expect(app).toContain('const timerPanel = ref<HTMLElement | null>(null)')
+    expect(app).toContain('const isTimerFullscreen = ref(false)')
+    expect(app).toContain('const toggleTimerFullscreen = async () =>')
+    expect(app).toContain('<div ref="timerPanel" class="timer-panel">')
+    expect(app).toContain('Fullscreen timer')
+    expect(app).toContain('Exit fullscreen')
+    expect(app).toContain('.timer-panel:fullscreen')
   })
 })
