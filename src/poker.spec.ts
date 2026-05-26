@@ -7,11 +7,13 @@ import {
   DEFAULT_TOURNAMENT_STATE,
   SEASON_NUMBER,
   SEASON_RANGE,
+  SEASON_RESULTS,
   SEASON_SCHEDULE,
+  SEASON_STANDINGS,
   calculatePlayerScore,
   createDefaultScoreRows,
   createDefaultTournamentState,
-  createLocalScoreRows,
+  createSeasonStandings,
   createZeroPointStandings,
   type ScoreRow,
 } from './poker'
@@ -25,10 +27,11 @@ describe('poker scoring and tournament defaults', () => {
       'James',
       'Ben',
       'Silvio',
-      'Kevin',
+      'Kev',
       'Tama',
       'Lizzie',
       'Greg',
+      'Cookie',
     ])
   })
 
@@ -38,7 +41,7 @@ describe('poker scoring and tournament defaults', () => {
     expect(SEASON_SCHEDULE).toEqual([
       { dateLabel: 'Friday 13 March', host: 'Aleanna', isNext: false },
       { dateLabel: 'Friday 10 April', host: 'Scott', isNext: false },
-      { dateLabel: 'Friday 8 May', host: 'Kevin', isNext: false },
+      { dateLabel: 'Friday 8 May', host: 'Kev', isNext: false },
       { dateLabel: 'Friday 12 June', host: 'Silvio', isNext: true },
       { dateLabel: 'Thursday 9 July', host: 'Byron', isNext: false },
       { dateLabel: 'Friday 14 August', host: 'Greg', isNext: false },
@@ -58,6 +61,58 @@ describe('poker scoring and tournament defaults', () => {
 
   it('awards one point for fifth place onwards', () => {
     expect(calculatePlayerScore({ name: 'Lizzie', placement: 9, kills: 0, hosted: false })).toBe(1)
+  })
+
+  it('stores March, April, and May Season 20 result entries', () => {
+    expect(SEASON_RESULTS.map((month) => month.month)).toEqual(['May', 'April', 'March'])
+    expect(SEASON_RESULTS[0]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+      '1st Ben',
+      '2nd Scott',
+      '3rd Greg',
+      '4th Aleanna',
+      '5th+ Byron',
+      '5th+ James',
+      '5th+ Kev',
+      '5th+ Lizzie',
+      '5th+ Silvio',
+    ])
+    expect(SEASON_RESULTS[1]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+      '1st James',
+      '2nd Aleanna',
+      '3rd Lizzie',
+      '4th Scott',
+      '5th+ Ben',
+      '5th+ Silvio',
+      '5th+ Greg',
+      '5th+ Tama',
+      '5th+ Byron',
+    ])
+    expect(SEASON_RESULTS[2]!.entries.map((entry) => `${entry.placementLabel} ${entry.name}`)).toEqual([
+      '1st Silvio',
+      '2nd Aleanna',
+      '3rd James',
+      '4th Lizzie',
+      '5th+ Ben',
+      '5th+ Greg',
+      '5th+ Cookie',
+    ])
+  })
+
+  it('calculates Season 20 standings from the entered monthly results', () => {
+    expect(createSeasonStandings()).toEqual([
+      { name: 'Aleanna', points: 10 },
+      { name: 'James', points: 9 },
+      { name: 'Ben', points: 7 },
+      { name: 'Silvio', points: 7 },
+      { name: 'Lizzie', points: 6 },
+      { name: 'Scott', points: 6 },
+      { name: 'Greg', points: 5 },
+      { name: 'Byron', points: 2 },
+      { name: 'Cookie', points: 1 },
+      { name: 'Kev', points: 1 },
+      { name: 'Tama', points: 1 },
+    ])
+    expect(SEASON_STANDINGS).toEqual(createSeasonStandings())
   })
 
   it('creates editable score rows for every participant', () => {
