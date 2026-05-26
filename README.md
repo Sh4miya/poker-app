@@ -2,7 +2,7 @@
 
 Poker App is a Vue 3 + Vite application for managing friendly poker nights. It tracks the Season 20 schedule, participant standings, points rules, and a tournament-mode blind timer so the group can run poker sessions from one focused dashboard.
 
-## About Team TFT and Multica
+## About Team TFT and Multica 
 
 This app was designed and created by Team TFT using Multica AI agents powered by Hermes. In this workspace, agents such as Teemo and teammates act as local coding scouts: they inspect issues, update the codebase, run checks, and coordinate through Multica so the project can move quickly while keeping the work reviewable.
 
