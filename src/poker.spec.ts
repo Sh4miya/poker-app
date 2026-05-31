@@ -213,16 +213,17 @@ describe('poker scoring and tournament defaults', () => {
     const app = appSource
 
     expect(app).toContain(
-      "const isLivePage = computed(() => route.path === '/tournament' || route.path === '/local')",
+      "const isLivePage = computed(() => route.path === '/tournament')",
     )
     expect(app).toContain(
-      '<RouterLink class="nav-button" to="/tournament">Live night workspace</RouterLink>',
+      '<RouterLink class="nav-button" to="/tournament">Tournament Mode</RouterLink>',
     )
     expect(app).not.toContain('to="/participants"')
     expect(app).not.toContain('<RouterLink class="nav-button" to="/local">Local mode</RouterLink>')
     expect(app).toContain('<template v-else-if="isLivePage">')
-    expect(app).toContain('Live night command centre')
+    expect(app).toContain('Tournament Timer')
     expect(app).toContain('Live scoring')
+    expect(app).toContain('{{ currentLevel.durationMinutes }} minute levels')
     expect(app.indexOf('<div ref="timerPanel" class="timer-panel">')).toBeLessThan(
       app.indexOf('<aside class="card participants-card">'),
     )

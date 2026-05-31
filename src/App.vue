@@ -29,7 +29,7 @@ const visibleResultMonths = ref<Set<string>>(new Set())
 let timerId: number | undefined
 
 const isHomePage = computed(() => route.path === '/')
-const isLivePage = computed(() => route.path === '/tournament' || route.path === '/local')
+const isLivePage = computed(() => route.path === '/tournament')
 const currentLevel = computed(
   () => tournament.blindLevels[tournament.levelIndex] ?? DEFAULT_TOURNAMENT_STATE.blindLevels[0]!,
 )
@@ -179,7 +179,7 @@ onUnmounted(() => {
         <RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">
           Rankings &amp; Standings
         </RouterLink>
-        <RouterLink class="nav-button" to="/tournament">Live night workspace</RouterLink>
+        <RouterLink class="nav-button" to="/tournament">Tournament Mode</RouterLink>
       </div>
     </section>
 
@@ -262,7 +262,7 @@ onUnmounted(() => {
           <section class="card tournament-card">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Live night command centre</p>
+                <p class="eyebrow">Tournament Timer</p>
                 <h2>{{ tournament.title }}</h2>
                 <p class="muted-copy live-intro">
                   Keep the blind clock, current level, next blind, and player scoring in one view so
@@ -284,6 +284,7 @@ onUnmounted(() => {
               <p>Level {{ tournament.levelIndex + 1 }} / {{ tournament.blindLevels.length }}</p>
               <strong>{{ timerLabel }}</strong>
               <span>{{ currentLevel.smallBlind }} / {{ currentLevel.bigBlind }} blinds</span>
+              <small>{{ currentLevel.durationMinutes }} minute levels</small>
               <small v-if="nextLevel">
                 Next: {{ nextLevel.smallBlind }} / {{ nextLevel.bigBlind }}
               </small>
@@ -965,6 +966,7 @@ h3 {
   .section-heading,
   .section-heading.compact {
     display: grid;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
