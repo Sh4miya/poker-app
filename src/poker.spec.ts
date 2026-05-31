@@ -139,7 +139,9 @@ describe('poker scoring and tournament defaults', () => {
   })
 
   it('uses the requested tournament blind ladder', () => {
-    expect(DEFAULT_TOURNAMENT_STATE.blindLevels.map((level) => `${level.smallBlind}/${level.bigBlind}`)).toEqual([
+    expect(
+      DEFAULT_TOURNAMENT_STATE.blindLevels.map((level) => `${level.smallBlind}/${level.bigBlind}`),
+    ).toEqual([
       '10/20',
       '20/40',
       '50/100',
@@ -180,7 +182,7 @@ describe('poker scoring and tournament defaults', () => {
     expect(app).toContain('v-for="night in SEASON_SCHEDULE"')
     expect(app).toContain('{{ night.dateLabel }}')
     expect(app).toContain('{{ night.host }}')
-    expect(app).toContain(":class=\"{ 'next-night': night.isNext }\"")
+    expect(app).toContain(':class="{ \'next-night\': night.isNext }"')
   })
 
   it('shows a rankings and standings navigation button away from the home page', () => {
@@ -207,22 +209,31 @@ describe('poker scoring and tournament defaults', () => {
     expect(app).toContain('placeholder="Kills"')
   })
 
-  it('keeps participant editing inside local browser session mode', () => {
+  it('combines timer controls and participant scoring in one live workspace', () => {
     const app = appSource
 
-    expect(app).toContain("const isLocalPage = computed(() => route.path === '/local')")
-    expect(app).toContain('<RouterLink class="nav-button" to="/local">Local mode</RouterLink>')
+    expect(app).toContain(
+      "const isLivePage = computed(() => route.path === '/tournament' || route.path === '/local')",
+    )
+    expect(app).toContain(
+      '<RouterLink class="nav-button" to="/tournament">Live night workspace</RouterLink>',
+    )
     expect(app).not.toContain('to="/participants"')
-    expect(app).toContain('<template v-else-if="isLocalPage">')
-    expect(app).toContain('Editable participants')
+    expect(app).not.toContain('<RouterLink class="nav-button" to="/local">Local mode</RouterLink>')
+    expect(app).toContain('<template v-else-if="isLivePage">')
+    expect(app).toContain('Live night command centre')
+    expect(app).toContain('Live scoring')
+    expect(app.indexOf('<div ref="timerPanel" class="timer-panel">')).toBeLessThan(
+      app.indexOf('<aside class="card participants-card">'),
+    )
   })
 
-  it('hides the editable blind schedule until edit blinds is selected', () => {
+  it('hides the editable blind schedule until edit blind schedule is selected', () => {
     const app = appSource
 
     expect(app).toContain('const showBlindEditor = ref(false)')
     expect(app).toContain('@click="showBlindEditor = !showBlindEditor"')
-    expect(app).toContain("{{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}")
+    expect(app).toContain("{{ showBlindEditor ? 'Hide blind schedule' : 'Edit blind schedule' }}")
     expect(app).toContain('<section v-if="showBlindEditor" class="card">')
   })
 
