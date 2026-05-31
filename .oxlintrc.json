@@ -4,6 +4,7 @@
   "env": {
     "browser": true
   },
+  "ignorePatterns": ["assets/**/*.js"],
   "categories": {
     "correctness": "error"
   }
