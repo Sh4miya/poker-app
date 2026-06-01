@@ -202,9 +202,9 @@ describe('poker scoring and tournament defaults', () => {
     const app = appSource
 
     expect(app).toContain(':key="index" class="score-row"')
-    expect(app).toContain('placeholder="Player name"')
-    expect(app).toContain('placeholder="Place"')
-    expect(app).toContain('placeholder="Kills"')
+    expect(app).toContain('placeholder="Name"')
+    expect(app).toContain('placeholder="1"')
+    expect(app).toContain('placeholder="0"')
   })
 
   it('keeps participant editing inside local browser session mode', () => {

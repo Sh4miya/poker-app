@@ -123,7 +123,9 @@ const resetTournamentAndBlinds = () => {
 }
 
 const syncFullscreenState = () => {
-  isTimerFullscreen.value = document.fullscreenElement === timerPanel.value
+  const panel = timerPanel.value
+
+  isTimerFullscreen.value = Boolean(panel && document.fullscreenElement === panel)
 }
 
 const toggleTimerFullscreen = async () => {
@@ -384,19 +386,19 @@ onUnmounted(() => {
             <span></span>
           </div>
           <div v-for="(row, index) in scoreRows" :key="index" class="score-row">
-            <input v-model="row.name" aria-label="Participant name" placeholder="Player name" />
+            <input v-model="row.name" aria-label="Participant name" placeholder="Name" />
             <input
               v-model.number="row.placement"
               aria-label="Placement"
               min="1"
-              placeholder="Place"
+              placeholder="1"
               type="number"
             />
             <input
               v-model.number="row.kills"
               aria-label="Kills"
               min="0"
-              placeholder="Kills"
+              placeholder="0"
               type="number"
             />
             <label class="host-toggle-cell" aria-label="Hosted">
