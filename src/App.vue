@@ -29,8 +29,7 @@ const visibleResultMonths = ref<Set<string>>(new Set())
 let timerId: number | undefined
 
 const isHomePage = computed(() => route.path === '/')
-const isTournamentPage = computed(() => route.path === '/tournament')
-const isLocalPage = computed(() => route.path === '/local')
+const isLivePage = computed(() => route.path === '/tournament')
 const currentLevel = computed(
   () => tournament.blindLevels[tournament.levelIndex] ?? DEFAULT_TOURNAMENT_STATE.blindLevels[0]!,
 )
@@ -172,9 +171,7 @@ onUnmounted(() => {
       <div>
         <p class="eyebrow">Season {{ SEASON_NUMBER }} poker stats</p>
         <h1>Season {{ SEASON_NUMBER }}</h1>
-        <p class="hero-copy">
-          Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}.
-        </p>
+        <p class="hero-copy">Season {{ SEASON_NUMBER }} runs from {{ SEASON_RANGE }}.</p>
         <p v-if="nextPokerNight" class="next-game-callout">
           Next poker game: <strong>{{ nextPokerNight.host }}</strong> on
           {{ nextPokerNight.dateLabel }}.
@@ -184,8 +181,7 @@ onUnmounted(() => {
         <RouterLink v-if="!isHomePage" class="nav-button ghost-button" to="/">
           Rankings &amp; Standings
         </RouterLink>
-        <RouterLink class="nav-button" to="/tournament">Tournament mode</RouterLink>
-        <RouterLink class="nav-button" to="/local">Local mode</RouterLink>
+        <RouterLink class="nav-button" to="/tournament">Tournament Mode</RouterLink>
       </div>
     </section>
 
@@ -249,7 +245,11 @@ onUnmounted(() => {
           <p class="eyebrow">Season schedule</p>
           <h2>Host Calendar</h2>
           <ul class="season-schedule">
-            <li v-for="night in SEASON_SCHEDULE" :key="night.dateLabel" :class="{ 'next-night': night.isNext }">
+            <li
+              v-for="night in SEASON_SCHEDULE"
+              :key="night.dateLabel"
+              :class="{ 'next-night': night.isNext }"
+            >
               <span>{{ night.dateLabel }}</span>
               <strong>{{ night.host }}</strong>
             </li>
@@ -258,164 +258,175 @@ onUnmounted(() => {
       </section>
     </template>
 
-    <template v-else-if="isTournamentPage">
-      <section class="card tournament-card">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Tournament mode</p>
-            <h2>{{ tournament.title }}</h2>
+    <template v-else-if="isLivePage">
+      <section class="live-workspace">
+        <div class="live-main-column">
+          <section class="card tournament-card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Tournament Timer</p>
+                <h2>{{ tournament.title }}</h2>
+                <p class="muted-copy live-intro">
+                  Keep the blind clock, current level, next blind, and player scoring in one view so
+                  the host does not have to switch modes mid-game.
+                </p>
+              </div>
+              <input v-model="tournament.title" class="title-input" aria-label="Tournament title" />
+            </div>
+
+            <div ref="timerPanel" class="timer-panel">
+              <button
+                type="button"
+                class="ghost-button compact-button timer-fullscreen-button"
+                :aria-pressed="isTimerFullscreen"
+                @click="toggleTimerFullscreen"
+              >
+                {{ isTimerFullscreen ? 'Exit fullscreen' : 'Fullscreen timer' }}
+              </button>
+              <p>Level {{ tournament.levelIndex + 1 }} / {{ tournament.blindLevels.length }}</p>
+              <strong>{{ timerLabel }}</strong>
+              <span>{{ currentLevel.smallBlind }} / {{ currentLevel.bigBlind }} blinds</span>
+              <small>{{ currentLevel.durationMinutes }} minute levels</small>
+              <small v-if="nextLevel">
+                Next: {{ nextLevel.smallBlind }} / {{ nextLevel.bigBlind }}
+              </small>
+              <small v-else>Final blind level</small>
+            </div>
+
+            <div class="button-row">
+              <button type="button" @click="toggleTimer">
+                {{ tournament.isRunning ? 'Pause clock' : 'Start clock' }}
+              </button>
+              <button type="button" @click="resetCurrentLevel">Reset level</button>
+              <button type="button" @click="advanceLevel">Next level</button>
+              <button type="button" @click="showBlindEditor = !showBlindEditor">
+                {{ showBlindEditor ? 'Hide blind schedule' : 'Edit blind schedule' }}
+              </button>
+              <button type="button" class="danger-button" @click="resetTournamentAndBlinds">
+                Reset timer &amp; blinds
+              </button>
+            </div>
+          </section>
+
+          <section v-if="showBlindEditor" class="card">
+            <div class="section-heading compact">
+              <div>
+                <p class="eyebrow">Blind schedule</p>
+                <h2>Edit levels without leaving the clock</h2>
+              </div>
+              <button type="button" @click="addBlindLevel">Add level</button>
+            </div>
+
+            <div class="schedule-list">
+              <div
+                v-for="(level, index) in tournament.blindLevels"
+                :key="index"
+                class="schedule-row"
+              >
+                <span>Level {{ index + 1 }}</span>
+                <label>
+                  Small blind
+                  <input
+                    :value="level.smallBlind"
+                    min="1"
+                    type="number"
+                    @input="
+                      updateBlindLevel(
+                        index,
+                        'smallBlind',
+                        Number(($event.target as HTMLInputElement).value),
+                      )
+                    "
+                  />
+                </label>
+                <label>
+                  Big blind
+                  <input
+                    :value="level.bigBlind"
+                    min="1"
+                    type="number"
+                    @input="
+                      updateBlindLevel(
+                        index,
+                        'bigBlind',
+                        Number(($event.target as HTMLInputElement).value),
+                      )
+                    "
+                  />
+                </label>
+                <label>
+                  Minutes
+                  <input
+                    :value="level.durationMinutes"
+                    min="1"
+                    type="number"
+                    @input="
+                      updateBlindLevel(
+                        index,
+                        'durationMinutes',
+                        Number(($event.target as HTMLInputElement).value),
+                      )
+                    "
+                  />
+                </label>
+                <button type="button" class="danger-button" @click="removeBlindLevel(index)">
+                  Remove
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="card participants-card">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">Live scoring</p>
+              <h2>Players &amp; placings</h2>
+            </div>
+            <button type="button" @click="addParticipant">Add player</button>
           </div>
-          <input v-model="tournament.title" class="title-input" aria-label="Tournament title" />
-        </div>
 
-        <div ref="timerPanel" class="timer-panel">
-          <button
-            type="button"
-            class="ghost-button compact-button timer-fullscreen-button"
-            :aria-pressed="isTimerFullscreen"
-            @click="toggleTimerFullscreen"
-          >
-            {{ isTimerFullscreen ? 'Exit fullscreen' : 'Fullscreen timer' }}
-          </button>
-          <p>Level {{ tournament.levelIndex + 1 }} / {{ tournament.blindLevels.length }}</p>
-          <strong>{{ timerLabel }}</strong>
-          <span>{{ currentLevel.smallBlind }} / {{ currentLevel.bigBlind }} blinds</span>
-          <small v-if="nextLevel">
-            Next: {{ nextLevel.smallBlind }} / {{ nextLevel.bigBlind }}
-          </small>
-          <small v-else>Final blind level</small>
-        </div>
-
-        <div class="button-row">
-          <button type="button" @click="toggleTimer">
-            {{ tournament.isRunning ? 'Pause' : 'Start' }}
-          </button>
-          <button type="button" @click="resetCurrentLevel">Reset level</button>
-          <button type="button" @click="advanceLevel">Next level</button>
-          <button type="button" @click="showBlindEditor = !showBlindEditor">
-            {{ showBlindEditor ? 'Hide blinds' : 'Edit blinds' }}
-          </button>
-          <button type="button" class="danger-button" @click="resetTournamentAndBlinds">
-            Reset timer & clear blinds
-          </button>
-        </div>
-      </section>
-
-      <section v-if="showBlindEditor" class="card">
-        <div class="section-heading compact">
-          <div>
-            <p class="eyebrow">Editable blind schedule</p>
-            <h2>Blinds</h2>
-          </div>
-          <button type="button" @click="addBlindLevel">Add level</button>
-        </div>
-
-        <div class="schedule-list">
-          <div v-for="(level, index) in tournament.blindLevels" :key="index" class="schedule-row">
-            <span>Level {{ index + 1 }}</span>
-            <label>
-              Small blind
-              <input
-                :value="level.smallBlind"
-                min="1"
-                type="number"
-                @input="
-                  updateBlindLevel(
-                    index,
-                    'smallBlind',
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
-            </label>
-            <label>
-              Big blind
-              <input
-                :value="level.bigBlind"
-                min="1"
-                type="number"
-                @input="
-                  updateBlindLevel(
-                    index,
-                    'bigBlind',
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
-            </label>
-            <label>
-              Minutes
-              <input
-                :value="level.durationMinutes"
-                min="1"
-                type="number"
-                @input="
-                  updateBlindLevel(
-                    index,
-                    'durationMinutes',
-                    Number(($event.target as HTMLInputElement).value),
-                  )
-                "
-              />
-            </label>
-            <button type="button" class="danger-button" @click="removeBlindLevel(index)">
-              Remove
-            </button>
-          </div>
-        </div>
-      </section>
-    </template>
-
-    <template v-else-if="isLocalPage">
-      <section class="card">
-        <div class="section-heading compact">
-          <div>
-            <p class="eyebrow">Editable participants</p>
-            <h2>Add participants</h2>
-          </div>
-          <button type="button" @click="addParticipant">Add participant</button>
-        </div>
-
-        <div class="score-table">
-          <div class="score-header">
-            <span>Player</span>
-            <span>Place</span>
-            <span>Kills</span>
-            <span>Host</span>
-            <span>Total</span>
-            <span></span>
-          </div>
-          <div v-for="(row, index) in scoreRows" :key="index" class="score-row">
-            <input v-model="row.name" aria-label="Participant name" placeholder="Name" />
-            <input
-              v-model.number="row.placement"
-              aria-label="Placement"
-              min="1"
-              placeholder="1"
-              type="number"
-            />
-            <input
-              v-model.number="row.kills"
-              aria-label="Kills"
-              min="0"
-              placeholder="0"
-              type="number"
-            />
-            <label class="host-toggle-cell" aria-label="Hosted">
+          <div class="score-table">
+            <div class="score-header">
+              <span>Player</span>
+              <span>Place</span>
+              <span>Kills</span>
               <span>Host</span>
-              <input v-model="row.hosted" type="checkbox" />
-            </label>
-            <strong class="score-total">{{ calculatePlayerScore(row) }}</strong>
-            <button type="button" class="danger-button" @click="removeParticipant(index)">
-              Remove
-            </button>
+              <span>Total</span>
+              <span></span>
+            </div>
+            <div v-for="(row, index) in scoreRows" :key="index" class="score-row">
+              <input v-model="row.name" aria-label="Participant name" placeholder="Player name" />
+              <input
+                v-model.number="row.placement"
+                aria-label="Placement"
+                min="1"
+                placeholder="Place"
+                type="number"
+              />
+              <input
+                v-model.number="row.kills"
+                aria-label="Kills"
+                min="0"
+                placeholder="Kills"
+                type="number"
+              />
+              <label class="host-toggle-cell" aria-label="Hosted">
+                <span>Host</span>
+                <input v-model="row.hosted" type="checkbox" />
+              </label>
+              <strong class="score-total">{{ calculatePlayerScore(row) }}</strong>
+              <button type="button" class="danger-button" @click="removeParticipant(index)">
+                Remove
+              </button>
+            </div>
           </div>
-        </div>
-        <p class="muted-copy participants-note">
-          Participant edits stay local to the current page view. Main standings use the saved Season
-          20 results.
-        </p>
-        <strong>{{ totalPrizePoints }} editable-entry points</strong>
+          <p class="muted-copy participants-note">
+            Live scoring stays local to this browser session. Season standings still use saved
+            Season 20 results.
+          </p>
+          <strong class="live-points-total">{{ totalPrizePoints }} live-entry points</strong>
+        </aside>
       </section>
     </template>
   </main>
@@ -842,11 +853,33 @@ h3 {
   gap: 0.75rem;
 }
 
+.live-workspace,
 .two-column {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.85fr);
   gap: 1.5rem;
   align-items: start;
+}
+
+.live-main-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.live-intro {
+  margin-bottom: 0;
+  font-size: 0.98rem;
+}
+
+.participants-card {
+  position: sticky;
+  top: 1rem;
+}
+
+.live-points-total {
+  display: inline-flex;
+  margin-top: 0.35rem;
+  color: #ede9fe;
 }
 
 .schedule-list,
@@ -935,6 +968,7 @@ h3 {
   .section-heading,
   .section-heading.compact {
     display: grid;
+    grid-template-columns: 1fr;
     align-items: stretch;
   }
 
@@ -943,11 +977,16 @@ h3 {
     justify-self: end;
   }
 
+  .live-workspace,
   .two-column,
   .schedule-row,
   .score-header,
   .score-row {
     grid-template-columns: 1fr;
+  }
+
+  .participants-card {
+    position: static;
   }
 
   .score-header {
