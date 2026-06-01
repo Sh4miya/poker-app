@@ -122,7 +122,9 @@ const resetTournamentAndBlinds = () => {
 }
 
 const syncFullscreenState = () => {
-  isTimerFullscreen.value = document.fullscreenElement === timerPanel.value
+  const panel = timerPanel.value
+
+  isTimerFullscreen.value = Boolean(panel && document.fullscreenElement === panel)
 }
 
 const toggleTimerFullscreen = async () => {
