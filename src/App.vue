@@ -127,19 +127,26 @@ const syncFullscreenState = () => {
   isTimerFullscreen.value = Boolean(panel && document.fullscreenElement === panel)
 }
 
+const exitFullscreenIfNeeded = async (panel: HTMLElement) => {
+  if (document.fullscreenElement === panel) {
+    await document.exitFullscreen()
+  }
+}
+
 const toggleTimerFullscreen = async () => {
   const panel = timerPanel.value
   if (!panel) return
 
   try {
     if (document.fullscreenElement === panel) {
-      await document.exitFullscreen()
-      return
+      await exitFullscreenIfNeeded(panel)
+    } else {
+      await panel.requestFullscreen()
     }
 
-    await panel.requestFullscreen()
+    syncFullscreenState()
   } catch {
-    isTimerFullscreen.value = false
+    syncFullscreenState()
   }
 }
 
@@ -396,19 +403,19 @@ onUnmounted(() => {
               <span></span>
             </div>
             <div v-for="(row, index) in scoreRows" :key="index" class="score-row">
-              <input v-model="row.name" aria-label="Participant name" placeholder="Player name" />
+              <input v-model="row.name" aria-label="Participant name" placeholder="Name" />
               <input
                 v-model.number="row.placement"
                 aria-label="Placement"
                 min="1"
-                placeholder="Place"
+                placeholder="1"
                 type="number"
               />
               <input
                 v-model.number="row.kills"
                 aria-label="Kills"
                 min="0"
-                placeholder="Kills"
+                placeholder="0"
                 type="number"
               />
               <label class="host-toggle-cell" aria-label="Hosted">
